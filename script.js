@@ -1,7 +1,7 @@
-var timeout = 500;
+var timeout = 10;
 
 
-board = [
+var board = [
             [0, 0, 0, 2, 6, 0, 7, 0, 1],
             [6, 8, 0, 0, 7, 0, 0, 9, 0],
             [1, 9, 0, 0, 0, 4, 5, 0, 0],
@@ -11,7 +11,9 @@ board = [
             [0, 0, 9, 3, 0, 0, 0, 7, 4],
             [0, 4, 0, 0, 5, 0, 0, 3, 6],
             [7, 0, 3, 0, 1, 8, 0, 0, 0]
-        ]
+        ];
+
+var solution = [];
 
 main = document.querySelector(".board");
 cells = [];
@@ -343,3 +345,33 @@ function removeErrorCells(row, col, val){
 }
 
 
+async function getNewBoard(){
+    const api_call = await fetch("https://sudoku-api.vercel.app/api/dosuku");
+    var api_board = await api_call.json();
+    if(api_board.newboard.message != "All Ok"){
+        alert("Something Went Wrong!");
+    } else{
+        board = api_board.newboard.grids[0].value;
+        solution = api_board.newboard.grids[0].solution;
+    }
+}
+
+document.querySelector(".btn-new-game").addEventListener('click', async e=>{
+    await getNewBoard();
+    console.log("Done")
+    for (let row = 0; row < board.length; row++) {
+        for (let col = 0; col < board[1].length; col++) {
+            cell = document.getElementById(`${row}${col}`);
+            if(board[row][col] == 0){
+                cell.classList.remove("prefill");
+                cell.innerHTML = ""
+            } else{
+                cell.classList.add("prefill");
+                cell.innerHTML = board[row][col];
+            }
+        }
+        
+    }
+});
+
+document.querySelector(".btn-solve").addEventListener('click', solver)
