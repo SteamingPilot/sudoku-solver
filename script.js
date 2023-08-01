@@ -1,4 +1,4 @@
-var timeout = 10;
+var timeout = 500;
 
 
 board = [
@@ -189,12 +189,24 @@ async function solve() {
 
     for (let val = 1; val < 10; val++){
         var activeCell = document.getElementById(`${row}${col}`);
-        activeCell.classList.add('active-computer');
-        activeCell.innerHTML = val;
 
+        // Give it some time while we check if the current value has any conflict.
+        // The reason we are using Promises becuase, checking for a boolean value doesn't take much 
+        // time for the computer, but we want to show it the user.
+        // So, this way we set a timer for timeout ms before moving to the next line of code.
         let possible_promise = new Promise((resolve)=>{
             setTimeout(()=>{
-                resolve(isPossible(row, col, val));
+                p = isPossible(row, col, val);
+
+                // 
+                removeErrorCells(row, col, val-1);
+                
+                if(!p){
+                    markErrorCells(row, col, val);
+                }
+
+
+                resolve(p);
             }, timeout);
         });
 
@@ -204,6 +216,8 @@ async function solve() {
             board[row][col] = val;
             activeCell.classList.remove('active-computer');
             activeCell.classList.add('complete-computer');
+            activeCell.innerHTML = val;
+
             let myWait = new Promise(function(resolve){
                 setTimeout(function () { resolve(solve()) }, timeout);
             });
@@ -213,21 +227,26 @@ async function solve() {
             if(wait != true){
                 board[row][col] = 0;
                 activeCell.classList.remove('complete-computer');
+                activeCell.classList.add('active-computer');
 
             } else{
                 return true;
             }
-       }
+        } else {
+            activeCell.classList.add('active-computer');
+            // Showing the new value in the page
+            activeCell.innerHTML = val;
+        }
     }
 
     var activeCell = document.getElementById(`${row}${col}`);
     activeCell.classList.remove('active-computer');
     activeCell.innerHTML = "";
+    removeErrorCells(row, col, 9)
 
     return false;
 
 }
-
 
 async function solver(){
     var solved = await solve();
@@ -236,8 +255,8 @@ async function solver(){
         prefilled = document.querySelectorAll(".prefill");
 
         for (let i = 0; i < prefilled.length; i++) {
-            const element = prefilled[i];
-            element.classList.remove("prefill");
+            const prefille_element = prefilled[i];
+            prefille_element.classList.remove("prefill");
         }
     }
 }
@@ -278,6 +297,26 @@ function findDuplicates(row, col, val){
     return duplicates;
 }
 
+function markErrorCells(row, col, val) {
+    // If there is a duplicat value in the col, row or square, we add an animation
+    duplicate_positions = findDuplicates(row, col, val);
+    duplicate_positions.forEach(pos => {
+        duplicateCell = document.getElementById(`${pos[0]}${pos[1]}`);
+        if(duplicateCell.classList.contains("prefill")){
+            duplicateCell.classList.add("prefill-error");
+        } else{
+            duplicateCell.classList.add("error");
+        }
+        
+        // The following code retriggers the animation for the cells that was already
+        // animated once before.
+        duplicateCell.style.animation = 'none';
+        duplicateCell.offsetHeight;
+        duplicateCell.style.animation = null;
+    });
+
+    return true;
+}
 
 function removeErrorCells(row, col, val){
     duplicate_positions = findDuplicates(row, col, val);
@@ -302,3 +341,5 @@ function removeErrorCells(row, col, val){
 
 
 }
+
+
