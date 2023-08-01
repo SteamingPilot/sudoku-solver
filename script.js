@@ -1,6 +1,10 @@
-var timeout = 10;
 
+// 1. Global Variables
 
+// Maintains the speed of the solver in ms. Defualt to 100ms.
+var SOLVER_SPEE = 100;
+
+// The Game Board.
 var board = [
             [0, 0, 0, 2, 6, 0, 7, 0, 1],
             [6, 8, 0, 0, 7, 0, 0, 9, 0],
@@ -13,31 +17,148 @@ var board = [
             [7, 0, 3, 0, 1, 8, 0, 0, 0]
         ];
 
+// The Solution of the Board.
 var solution = [];
 
-main = document.querySelector(".board");
-cells = [];
+/*
+An array of arrays that holds the cell DOM elements. 
+If we want to make changes to the cells  in the DOM, 
+this is a quick way to do so.
+*/
+var cells = [];
+
+// The cell that is selected by the user or the computer when solving.
 var activeCell = null;
 
-for (let row = 0; row < 9; row++) {
-    rowDiv = document.createElement('div');
-    rowDiv.classList.add("row");
-    for (let col = 0; col < 9; col++) {
-        colDiv = document.createElement('div');
-        colDiv.classList.add('cell');
-        colDiv.id = `${row}${col}`;
+
+// FUNCTIONS
+
+// Utility Functions
+
+/*
+    Function: Events Initialize
+    Parameters: N/A
+    Return Value: N/A
+
+    Function Description:
+        This functions adds event listeners to game. 
+        Like: 
+            Click events to all the cells.
+            Window events for Key presses, and so on.
+
+    NOTE: Please call this function only after cells array has been populated.
+    Because it requires the baord DOM to be ready to add the events.
+				
+*/
+
+
+function EventsInitialize(){
+    // // Adding keyboard press event
+    // // This event will allow users to write numbers to the selected cells
+    window.addEventListener("keyup", (e) => {
+        // To ensure we only edit the active selected cell.
+        if (activeCell == null) return;
+
+        if (e.key >= 1 && e.key <= 9) {
+            row = parseInt(activeCell.id[0]);
+            col = parseInt(activeCell.id[1]);
+            previous_value = board[row][col];
+
+            
+            // If there is a duplicat value in the col, row or square, we add an animation
+            duplicate_positions = findDuplicates(row, col, e.key);
+            if(duplicates.length != 0){
+                duplicate_positions.forEach(pos => {
+                    duplicateCell = document.getElementById(`${pos[0]}${pos[1]}`);
+                    if(duplicateCell.classList.contains("prefill")){
+                        duplicateCell.classList.add("prefill-error");
+                    } else{
+                        duplicateCell.classList.add("error");
+                    }
+                    
+
+
+                    // The following code retriggers the animation for the cells that was already
+                    // animated once before.
+                    duplicateCell.style.animation = 'none';
+                    duplicateCell.offsetHeight;
+                    duplicateCell.style.animation = null;
+                });
+                activeCell.classList.add("error");
+            } else{
+                // The current cell is not an error. but if it was an error before, we need to remove that.
+                activeCell.classList.remove("error")
+            }
+
+            // Set the new value in the board
+            board[row][col] = e.key
+            activeCell.innerHTML = e.key;
+
+            // Removing Other Error Cells that were cause by the previous value of the current cell. 
+            removeErrorCells(row, col, previous_value);
+
+        } else if(e.key == 'Backspace' || e.key == 0){
+            row = parseInt(activeCell.id[0]);
+            col = parseInt(activeCell.id[1]);
+            
+            previous_value = board[row][col];
+            board[row][col] = 0
+            activeCell.innerHTML = "";
+
+            // Removing the error mark of the active cell
+            activeCell.classList.remove("error");
+
+            // We also have to remove other error cells that was getting error as a result of the value of the current cell
+            removeErrorCells(row, col, previous_value);
+        }
+    });
+
+}
+
+
+/* 
+    Function: Game Initializer
+    Parameter: N/A
+    Return Value: N/A
+
+    Function Description:
+        Initializes the game by making the board. Adding Event Listeners to the cells.
+        And so on.
+
+*/
+function gameInitialize(){
+
+    // Creating the board in the DOM
+    main = document.querySelector(".board");
+
+    for (let row = 0; row < 9; row++) {
+        var rows = [];
         
-        if (board[row][col] != 0) {
-            colDiv.innerHTML = board[row][col];
-            colDiv.classList.add('prefill');
+        rowDiv = document.createElement('div');
+        rowDiv.classList.add("row");
+
+        for (let col = 0; col < 9; col++) {
+            colDiv = document.createElement('div');
+            colDiv.classList.add('cell');
+            colDiv.id = `${row}${col}`;
+            
+            if (board[row][col] != 0) {
+                colDiv.innerHTML = board[row][col];
+                colDiv.classList.add('prefill');
+            }
+
+            rowDiv.appendChild(colDiv);
+            rows.push(colDiv);
+
         }
 
-        rowDiv.appendChild(colDiv);
-        cells.push(colDiv);
-
+        cells.push(rows);
+        main.appendChild(rowDiv);
+        
     }
-    main.appendChild(rowDiv);
 }
+
+
     
 // Adding the click event to all empty cells. 
 // This will select a cell to be edited with numbers.
@@ -60,65 +181,6 @@ cells.forEach(element => {
 });
 
 
-// // Adding keyboard press event
-// // This event will allow users to write numbers to the selected cells
-window.addEventListener("keyup", (e) => {
-    // To ensure we only edit the active selected cell.
-    if (activeCell == null) return;
-
-    if (e.key >= 1 && e.key <= 9) {
-        row = parseInt(activeCell.id[0]);
-        col = parseInt(activeCell.id[1]);
-        previous_value = board[row][col];
-
-        
-        // If there is a duplicat value in the col, row or square, we add an animation
-        duplicate_positions = findDuplicates(row, col, e.key);
-        if(duplicates.length != 0){
-            duplicate_positions.forEach(pos => {
-                duplicateCell = document.getElementById(`${pos[0]}${pos[1]}`);
-                if(duplicateCell.classList.contains("prefill")){
-                    duplicateCell.classList.add("prefill-error");
-                } else{
-                    duplicateCell.classList.add("error");
-                }
-                
-
-
-                // The following code retriggers the animation for the cells that was already
-                // animated once before.
-                duplicateCell.style.animation = 'none';
-                duplicateCell.offsetHeight;
-                duplicateCell.style.animation = null;
-            });
-            activeCell.classList.add("error");
-        } else{
-            // The current cell is not an error. but if it was an error before, we need to remove that.
-            activeCell.classList.remove("error")
-        }
-
-        // Set the new value in the board
-        board[row][col] = e.key
-        activeCell.innerHTML = e.key;
-
-        // Removing Other Error Cells that were cause by the previous value of the current cell. 
-        removeErrorCells(row, col, previous_value);
-
-    } else if(e.key == 'Backspace' || e.key == 0){
-        row = parseInt(activeCell.id[0]);
-        col = parseInt(activeCell.id[1]);
-        
-        previous_value = board[row][col];
-        board[row][col] = 0
-        activeCell.innerHTML = "";
-
-        // Removing the error mark of the active cell
-        activeCell.classList.remove("error");
-
-        // We also have to remove other error cells that was getting error as a result of the value of the current cell
-        removeErrorCells(row, col, previous_value);
-    }
-});
 
 // NOTE: This function expects, that the val has not yet been inserted into the board.
 function isPossible(row, col, val){
@@ -209,7 +271,7 @@ async function solve() {
 
 
                 resolve(p);
-            }, timeout);
+            }, SOLVER_SPEE);
         });
 
         let possible = await possible_promise;
@@ -221,7 +283,7 @@ async function solve() {
             activeCell.innerHTML = val;
 
             let myWait = new Promise(function(resolve){
-                setTimeout(function () { resolve(solve()) }, timeout);
+                setTimeout(function () { resolve(solve()) }, SOLVER_SPEE);
             });
 
             var wait = await myWait;
