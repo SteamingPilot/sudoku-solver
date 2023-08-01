@@ -32,157 +32,27 @@ var activeCell = null;
 
 
 // FUNCTIONS
-
 // Utility Functions
 
 /*
-    Function: Events Initialize
-    Parameters: N/A
-    Return Value: N/A
+    Function: isPossible
+    Parameters: 
+        row, col -> row and column number of the cell
+        val -> The val that needs to be checked.
+
+    Return Value:
+        true -> if val is possible to insert at row, col without conflict
+        false -> not possible
 
     Function Description:
-        This functions adds event listeners to game. 
-        Like: 
-            Click events to all the cells.
-            Window events for Key presses, and so on.
+        This function checks whether a value is possible to insert at baord[row][col] without
+        a conflict of values of cells in the respective column, row and square. Returns true or 
+        false based on the result.
 
-    NOTE: Please call this function only after cells array has been populated.
-    Because it requires the baord DOM to be ready to add the events.
+    NOTE: This function expects, that the val has not yet been inserted into the board.
+          Meaning board[row][col] = val has NOT yet been performed.
 				
 */
-
-
-function EventsInitialize(){
-    // // Adding keyboard press event
-    // // This event will allow users to write numbers to the selected cells
-    window.addEventListener("keyup", (e) => {
-        // To ensure we only edit the active selected cell.
-        if (activeCell == null) return;
-
-        if (e.key >= 1 && e.key <= 9) {
-            row = parseInt(activeCell.id[0]);
-            col = parseInt(activeCell.id[1]);
-            previous_value = board[row][col];
-
-            
-            // If there is a duplicat value in the col, row or square, we add an animation
-            duplicate_positions = findDuplicates(row, col, e.key);
-            if(duplicates.length != 0){
-                duplicate_positions.forEach(pos => {
-                    duplicateCell = document.getElementById(`${pos[0]}${pos[1]}`);
-                    if(duplicateCell.classList.contains("prefill")){
-                        duplicateCell.classList.add("prefill-error");
-                    } else{
-                        duplicateCell.classList.add("error");
-                    }
-                    
-
-
-                    // The following code retriggers the animation for the cells that was already
-                    // animated once before.
-                    duplicateCell.style.animation = 'none';
-                    duplicateCell.offsetHeight;
-                    duplicateCell.style.animation = null;
-                });
-                activeCell.classList.add("error");
-            } else{
-                // The current cell is not an error. but if it was an error before, we need to remove that.
-                activeCell.classList.remove("error")
-            }
-
-            // Set the new value in the board
-            board[row][col] = e.key
-            activeCell.innerHTML = e.key;
-
-            // Removing Other Error Cells that were cause by the previous value of the current cell. 
-            removeErrorCells(row, col, previous_value);
-
-        } else if(e.key == 'Backspace' || e.key == 0){
-            row = parseInt(activeCell.id[0]);
-            col = parseInt(activeCell.id[1]);
-            
-            previous_value = board[row][col];
-            board[row][col] = 0
-            activeCell.innerHTML = "";
-
-            // Removing the error mark of the active cell
-            activeCell.classList.remove("error");
-
-            // We also have to remove other error cells that was getting error as a result of the value of the current cell
-            removeErrorCells(row, col, previous_value);
-        }
-    });
-
-}
-
-
-/* 
-    Function: Game Initializer
-    Parameter: N/A
-    Return Value: N/A
-
-    Function Description:
-        Initializes the game by making the board. Adding Event Listeners to the cells.
-        And so on.
-
-*/
-function gameInitialize(){
-
-    // Creating the board in the DOM
-    main = document.querySelector(".board");
-
-    for (let row = 0; row < 9; row++) {
-        var rows = [];
-        
-        rowDiv = document.createElement('div');
-        rowDiv.classList.add("row");
-
-        for (let col = 0; col < 9; col++) {
-            colDiv = document.createElement('div');
-            colDiv.classList.add('cell');
-            colDiv.id = `${row}${col}`;
-            
-            if (board[row][col] != 0) {
-                colDiv.innerHTML = board[row][col];
-                colDiv.classList.add('prefill');
-            }
-
-            rowDiv.appendChild(colDiv);
-            rows.push(colDiv);
-
-        }
-
-        cells.push(rows);
-        main.appendChild(rowDiv);
-        
-    }
-}
-
-
-    
-// Adding the click event to all empty cells. 
-// This will select a cell to be edited with numbers.
-cells.forEach(element => {
-    element.addEventListener("click", () => {
-        if (element.classList.contains('prefill')){
-            return;
-        }
-        if (activeCell == null) {
-            activeCell = element;
-            activeCell.classList.add('active');
-        } else {
-            activeCell.classList.remove('active');
-            activeCell = element;
-            activeCell.classList.add('active');
-        }
-    });
-
-
-});
-
-
-
-// NOTE: This function expects, that the val has not yet been inserted into the board.
 function isPossible(row, col, val){
     // Checking Row 
     for (let i = 0; i < 9.; i++) {
@@ -229,6 +99,20 @@ function isPossible(row, col, val){
     
 }
 
+/*
+    Function: findEmptyCell
+    Parameters: N/A
+
+    Return Value: 
+        Array [int, int] -> 
+            An array of the row, col number of the next empty cell.
+            If no empty cell is avaialbe returns [-1, -1]
+
+
+    Function Description:
+        This function finds the next empty cell in the board, 
+        and returns its position as an array of two items [row, col].
+*/
 function findEmptyCell(){
     for (let i = 0; i < 9; i++) {
         for(let j=0; j<9; j++){
@@ -241,6 +125,180 @@ function findEmptyCell(){
     // where there is no more empty cells.
     return [-1, -1]
 }
+
+
+
+/*
+    Function: Events Initialize
+    Parameters: N/A
+    Return Value: N/A
+
+    Function Description:
+        This functions adds event listeners to game. 
+        Like: 
+            Click events to all the cells.
+            Window events for Key presses, and so on.
+
+    NOTE: Please call this function only after cells array has been populated.
+    Because it requires the baord DOM to be ready to add the events.
+				
+*/
+
+
+function eventsInitialize(){
+    // Adding the click event to all empty cells. 
+    // This will select a cell to be edited with numbers.
+
+    for (let i = 0; i < cells.length; i++) {
+        for (let j = 0; j < cells[0].length; j++) {
+            cell = cells[i][j];
+
+            cell.addEventListener("click", () => {
+
+                // The Prefilled Cells cannot be active
+                if (cell.classList.contains('prefill')){
+                    return;
+                }
+
+                if (activeCell != null) {
+                    // If any other cell was already active,  
+                    // we need to remove the .active class from it
+                    activeCell.classList.remove('active');
+                }
+
+                activeCell = cell;
+                activeCell.classList.add('active');
+            });
+
+        }
+    }
+
+    cells.forEach(element => {
+        
+
+
+    });
+
+
+
+    // // Adding keyboard press event
+    // // This event will allow users to write numbers to the selected cells
+    window.addEventListener("keyup", (e) => {
+        // To ensure we only edit the active selected cell.
+        if (activeCell == null) return;
+
+        if (e.key >= 1 && e.key <= 9) {
+            row = parseInt(activeCell.id[0]);
+            col = parseInt(activeCell.id[1]);
+            previous_value = board[row][col];
+
+
+            /*  
+                After editing a value of the cell
+                if there is a duplicat value in the col, row or square, 
+                we add the error animation 
+            */
+            duplicate_positions = findDuplicates(row, col, e.key);
+            if(duplicates.length != 0){
+                duplicate_positions.forEach(pos => {
+                    duplicateCell = document.getElementById(`${pos[0]}${pos[1]}`);
+                    if(duplicateCell.classList.contains("prefill")){
+                        duplicateCell.classList.add("prefill-error");
+                    } else{
+                        duplicateCell.classList.add("error");
+                    }
+
+                    
+                    // The following code retriggers the animation for the cells that was 
+                    // already animated with the error animation before.
+                    duplicateCell.style.animation = 'none';
+                    duplicateCell.offsetHeight;
+                    duplicateCell.style.animation = null;
+                });
+
+                activeCell.classList.add("error");
+            } else{
+
+                // The current cell is not an error. but if it was an error before, we need to remove that.
+                activeCell.classList.remove("error")
+            }
+
+            // Set the new value in the board
+            board[row][col] = e.key
+            activeCell.innerHTML = e.key;
+
+
+            /*
+            Removing Other Error Cells that were cause by the previous 
+            value (before the current edit) of the current cell. 
+            */
+            removeErrorCells(row, col, previous_value);
+
+        } else if(e.key == 'Backspace' || e.key == 0){
+            row = parseInt(activeCell.id[0]);
+            col = parseInt(activeCell.id[1]);
+            
+            previous_value = board[row][col];
+            board[row][col] = 0
+            activeCell.innerHTML = "";
+
+            // Removing the error mark of the active cell
+            activeCell.classList.remove("error");
+
+            // We also have to remove other error cells that was getting error as a result of the value of the current cell
+            removeErrorCells(row, col, previous_value);
+        }
+    });
+
+}
+
+/* 
+    Function: Game Initializer
+    Parameter: N/A
+    Return Value: N/A
+
+    Function Description:
+        Initializes the game by making the board. Adding Event Listeners to the cells.
+        And so on.
+
+*/
+function gameInitialize(){
+
+    // Creating the board in the DOM
+    main = document.querySelector(".board");
+
+    for (let row = 0; row < 9; row++) {
+        var rows = [];
+        
+        rowDiv = document.createElement('div');
+        rowDiv.classList.add("row");
+
+        for (let col = 0; col < 9; col++) {
+            colDiv = document.createElement('div');
+            colDiv.classList.add('cell');
+            colDiv.id = `${row}${col}`;
+            
+            if (board[row][col] != 0) {
+                colDiv.innerHTML = board[row][col];
+                colDiv.classList.add('prefill');
+            }
+
+            rowDiv.appendChild(colDiv);
+            rows.push(colDiv);
+
+        }
+
+        cells.push(rows);
+        main.appendChild(rowDiv);
+        
+    }
+
+    // Adding the initialize events
+    eventsInitialize();
+}
+
+
+    
 
 
 async function solve() {
@@ -436,4 +494,6 @@ document.querySelector(".btn-new-game").addEventListener('click', async e=>{
     }
 });
 
-document.querySelector(".btn-solve").addEventListener('click', solver)
+document.querySelector(".btn-solve").addEventListener('click', solver);
+
+gameInitialize();
