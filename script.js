@@ -2,7 +2,8 @@
 // 1. Global Variables
 
 // Maintains the speed of the solver in ms. Defualt to 100ms.
-var SOLVER_SPEED = 100;
+var SOLVER_SPEED = 1;
+var IS_SOLVING = false;
 
 // The Game Board. The users interact with this
 var board = [
@@ -45,7 +46,7 @@ var cells = [];
 // The cell that is selected by the user or the computer when solving.
 var activeCell = null;
 
-var IS_SOLVING = false;
+
 
 // FUNCTIONS
 // Utility Functions
@@ -305,18 +306,32 @@ function resetBoard() {
             var cell = cells[row][col];
 
             // Removing all sorts of external classes
+            cell.classList.remove("prefill");
+
             cell.classList.remove("active");
+            cell.classList.remove("complete-computer");
+
             cell.classList.remove("error");
             cell.classList.remove("prefill-error");
+
+
+            
 
             // Set Unfilled Cells to nothing
             if(board[row][col] == 0){
                 cell.innerHTML = ""
+            } else {
+                cell.innerHTML = board[row][col];
+                cell.classList.add("prefill")
             }
         }
         
     }
 
+}
+
+function copySolutionToMainBoard(){
+    board = JSON.parse(JSON.stringify(solution));
 }
 
 
@@ -343,8 +358,8 @@ async function getNewBoard(){
     if(api_board.newboard.message != "All Ok"){
         alert("Something Went Wrong!");
     } else{
-        board = api_board.newboard.grids[0].value;
-        original_board = JSON.parse(JSON.stringify(board));
+        original_board = api_board.newboard.grids[0].value;
+        board = JSON.parse(JSON.stringify(original_board));
         solution = api_board.newboard.grids[0].solution;
     }
 }
@@ -454,23 +469,14 @@ function eventsInitialize(){
 
     // Button Events
     // Button - New Game
+
     document.querySelector(".btn-new-game").addEventListener('click', async e=>{
+        IS_SOLVING = false;
+        copySolutionToMainBoard();
         await getNewBoard();
 
         // Changing the DOM board
-        for (let row = 0; row < board.length; row++) {
-            for (let col = 0; col < board[1].length; col++) {
-                var cell = cells[row][col];
-                if(board[row][col] == 0){
-                    cell.classList.remove("prefill");
-                    cell.innerHTML = ""
-                } else{
-                    cell.classList.add("prefill");
-                    cell.innerHTML = board[row][col];
-                }
-            }
-            
-        }
+        resetBoard();
     });
     
     // Button - Solve
@@ -534,6 +540,8 @@ function gameInitialize(){
 
 */
 async function solve() {
+    if(!IS_SOLVING) return false;
+
     let row, col;
     [row, col] = findEmptyCell();
 
@@ -617,6 +625,10 @@ async function solver(){
     resetBoard();
 
     IS_SOLVING = true;
+    var new_game_btn = document.querySelector(".btn-new-game")
+    new_game_btn.disabled = true;
+    new_game_btn.classList.add("btn-disabled");
+
     var solved = await solve();
 
     if(solved){
@@ -627,6 +639,11 @@ async function solver(){
             prefille_element.classList.remove("prefill");
         }
     }
+
+    IS_SOLVING = false;
+    new_game_btn.disabled = false;
+    new_game_btn.classList.remove("btn-disabled");
+    
 }
 
 
