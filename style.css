@@ -81,27 +81,29 @@ html *{
     border-bottom: 2px solid var(--color-black);
 }
 
+/* Board - Cell - Special */
 
+/* Board - Cell - Special - The Active Cell (For User)  */
 .active{
     background-color: var(--color-blue);
 }
 
-
-
-
+/* Board - Cell - Special - The Active Cell (when computer is solving) */
 .active-computer{
     background-color: var(--color-yellow);
 }
 
+/* Board - Cell - Special - The Computer Complete (When computer finalizes a value for a cell) */
 .complete-computer{
     background-color: var(--color-green);
 }
 
+/* Board - Cell - Special - Prefilled Cells */
 .prefill{
     background-color: rgba(0,0,0,0.15);
 }
 
-/* Errors */
+/* Board - Cell - Special - Errors Cell */
 .error{
     color: var(--color-red);
     background-color: var(--background-red);
@@ -109,6 +111,7 @@ html *{
     animation: growAndShrink 0.25s linear 0s 1 normal;
 }
 
+/* Board - Cell - Special - Prefilled Error Cells*/
 .prefill-error{
     color: var(--color-red);
 
