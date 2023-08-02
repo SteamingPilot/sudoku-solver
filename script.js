@@ -45,6 +45,7 @@ var cells = [];
 // The cell that is selected by the user or the computer when solving.
 var activeCell = null;
 
+var IS_SOLVING = false;
 
 // FUNCTIONS
 // Utility Functions
@@ -615,7 +616,7 @@ async function solver(){
     // Reset the baord to it's original state
     resetBoard();
 
-
+    IS_SOLVING = true;
     var solved = await solve();
 
     if(solved){
