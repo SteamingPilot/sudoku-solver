@@ -2,23 +2,38 @@
 // 1. Global Variables
 
 // Maintains the speed of the solver in ms. Defualt to 100ms.
-var SOLVER_SPEE = 100;
+var SOLVER_SPEED = 100;
 
-// The Game Board.
+// The Game Board. The users interact with this
 var board = [
-            [0, 0, 0, 2, 6, 0, 7, 0, 1],
-            [6, 8, 0, 0, 7, 0, 0, 9, 0],
-            [1, 9, 0, 0, 0, 4, 5, 0, 0],
-            [8, 2, 0, 1, 0, 0, 0, 4, 0],
-            [0, 0, 4, 6, 0, 2, 9, 0, 0],
-            [0, 5, 0, 0, 0, 3, 0, 2, 8],
-            [0, 0, 9, 3, 0, 0, 0, 7, 4],
-            [0, 4, 0, 0, 5, 0, 0, 3, 6],
-            [7, 0, 3, 0, 1, 8, 0, 0, 0]
-        ];
+                [0, 0, 0, 2, 6, 0, 7, 0, 1],
+                [6, 8, 0, 0, 7, 0, 0, 9, 0],
+                [1, 9, 0, 0, 0, 4, 5, 0, 0],
+                [8, 2, 0, 1, 0, 0, 0, 4, 0],
+                [0, 0, 4, 6, 0, 2, 9, 0, 0],
+                [0, 5, 0, 0, 0, 3, 0, 2, 8],
+                [0, 0, 9, 3, 0, 0, 0, 7, 4],
+                [0, 4, 0, 0, 5, 0, 0, 3, 6],
+                [7, 0, 3, 0, 1, 8, 0, 0, 0]
+            ];
+
+// This is used to reset the board to it's original state.
+var original_board = [
+                        [0, 0, 0, 2, 6, 0, 7, 0, 1],
+                        [6, 8, 0, 0, 7, 0, 0, 9, 0],
+                        [1, 9, 0, 0, 0, 4, 5, 0, 0],
+                        [8, 2, 0, 1, 0, 0, 0, 4, 0],
+                        [0, 0, 4, 6, 0, 2, 9, 0, 0],
+                        [0, 5, 0, 0, 0, 3, 0, 2, 8],
+                        [0, 0, 9, 3, 0, 0, 0, 7, 4],
+                        [0, 4, 0, 0, 5, 0, 0, 3, 6],
+                        [7, 0, 3, 0, 1, 8, 0, 0, 0]
+                    ];
 
 // The Solution of the Board.
 var solution = [];
+
+
 
 /*
 An array of arrays that holds the cell DOM elements. 
@@ -100,6 +115,57 @@ function isPossible(row, col, val){
 }
 
 /*
+    Function: findDuplicates
+    Parameters: 
+        row, col -> row and column number of the cell
+        val -> The val that needs to be checked.
+
+    Return Value:
+        Array [Array [int row, int col]] -> Array of matching value cell's 
+                                            position in the form of [row, col]
+
+    Function Description:
+        This function is similar to the isPossible function, but instead of returning true/false
+        it returns an array of the value matching cells position.
+
+    NOTE: This function expects, that the val has not yet been inserted into the board.
+          Meaning board[row][col] = val has NOT yet been performed.
+				
+*/
+function findDuplicates(row, col, val){
+    duplicates = [];
+
+    // Checking Row 
+    for (let i = 0; i < 9.; i++) {
+        if (board[row][i] == val) {
+            duplicates.push([row, i]);
+        }
+    }
+
+    // Checking Column
+    for (let i = 0; i < 9.; i++) {
+        if (board[i][col] == val) {
+            duplicates.push([i, col]);
+        }
+    }
+
+
+    sq_row = Math.floor(row/3);
+    sq_col = Math.floor(col/3);
+
+    for (let i = sq_row*3; i < (sq_row*3)+3; i++) {
+        for (let j = sq_col*3; j < (sq_col*3)+3; j++) {
+            if(board[i][j] == val) {
+                duplicates.push([i, j]);
+            }
+        }
+        
+    }
+
+    return duplicates;
+}
+
+/*
     Function: findEmptyCell
     Parameters: N/A
 
@@ -126,7 +192,161 @@ function findEmptyCell(){
     return [-1, -1]
 }
 
+/*
+    Function: markErrorCells
+    
+    Function Description:
+        for a value at position row, col, this function finds the duplicate values in the 
+        column, row, and square, and marks them with the error animation by adding the
+        .error class to the cell. It adds .prefill-error instead of .error to the 
+        prefilled cells.
 
+    Parameters: 
+        row, col -> row and column number of the cell
+        val -> The val that needs to be checked.
+
+    Return Value: 
+        true -> At least one cell was marked error
+        false -> otherwise.
+
+
+*/
+
+function markErrorCells(row, col, val) {
+    // If there is a duplicat value in the col, row or square, we add an animation
+    duplicate_positions = findDuplicates(row, col, val);
+
+    if (duplicate_positions.length != 0) {
+        duplicate_positions.forEach(pos => {
+            duplicateCell = document.getElementById(`${pos[0]}${pos[1]}`);
+            if(duplicateCell.classList.contains("prefill")){
+                duplicateCell.classList.add("prefill-error");
+            } else{
+                duplicateCell.classList.add("error");
+            }
+            
+            // The following code retriggers the animation for the cells that was already
+            // animated once before.
+            duplicateCell.style.animation = 'none';
+            duplicateCell.offsetHeight;
+            duplicateCell.style.animation = null;
+        });
+
+        
+        return true;
+    } else {
+        return false;
+    }
+
+
+}
+
+/*
+    Function: removeErrorCells
+    
+    Function Description:
+        If a value at position row, col is changed, this function finds the duplicate values of previous
+        value in the column, row, and square, and removes the error mark by removing the 
+        .error and .prefill-error class
+
+    Parameters: 
+        row, col -> row and column number of the cell
+        val -> The previous value, NOT the new onw.
+
+    Return Value: 
+        N/A
+
+
+*/
+
+function removeErrorCells(row, col, val){
+    duplicate_positions = findDuplicates(row, col, val);
+        duplicate_positions.forEach(pos=>{
+
+            // We are setting the value of the target cell to 0,
+            // because we will be calling the isPossible function which expects the value to NOT
+            // be inserted in the targetted cell. 
+            // We have changed the cell's value back to it's original value later on.
+            board[pos[0]][pos[1]] = 0;
+
+            if(isPossible(pos[0], pos[1], val)){
+                error_cell = document.getElementById(`${pos[0]}${pos[1]}`);
+
+                error_cell.classList.remove("error");
+                error_cell.classList.remove("prefill-error");
+            }
+
+            // Changing the cells value to its original value.
+            board[pos[0]][pos[1]] = val;
+        });
+
+
+}
+
+/*
+    Function: resetBoard
+    
+    Function Description:
+        This function resets the board to its original state.
+
+    Parameters: N/A
+    Return Value: N/A
+
+
+*/
+function resetBoard() {
+    // Deep Copying the original board to the board 
+    board = JSON.parse(JSON.stringify(original_board));
+
+    // Changing the DOM board
+    for (let row = 0; row < board.length; row++) {
+        for (let col = 0; col < board[1].length; col++) {
+            var cell = cells[row][col];
+
+            // Removing all sorts of external classes
+            cell.classList.remove("active");
+            cell.classList.remove("error");
+            cell.classList.remove("prefill-error");
+
+            // Set Unfilled Cells to nothing
+            if(board[row][col] == 0){
+                cell.innerHTML = ""
+            }
+        }
+        
+    }
+
+}
+
+
+// Main Functions
+
+/*
+    Function: getNewBoard
+    
+    Function Description:
+        Gets a new sudoku board by calling an api. It updates both the board variable
+        and the sudoku variable.
+
+    Parameters: 
+        N/A
+
+    Return Value: 
+        N/A
+
+
+*/
+async function getNewBoard(){
+    const api_call = await fetch("https://sudoku-api.vercel.app/api/dosuku");
+    var api_board = await api_call.json();
+    if(api_board.newboard.message != "All Ok"){
+        alert("Something Went Wrong!");
+    } else{
+        board = api_board.newboard.grids[0].value;
+        original_board = JSON.parse(JSON.stringify(board));
+        solution = api_board.newboard.grids[0].solution;
+    }
+}
 
 /*
     Function: Events Initialize
@@ -144,17 +364,16 @@ function findEmptyCell(){
 				
 */
 
-
 function eventsInitialize(){
     // Adding the click event to all empty cells. 
     // This will select a cell to be edited with numbers.
 
-    for (let i = 0; i < cells.length; i++) {
-        for (let j = 0; j < cells[0].length; j++) {
-            cell = cells[i][j];
+    for (let i = 0; i < 9; i++) {
+        for (let j = 0; j < 9; j++) {
+            var cell = cells[i][j];
 
-            cell.addEventListener("click", () => {
-
+            cell.addEventListener("click", e => {
+                
                 // The Prefilled Cells cannot be active
                 if (cell.classList.contains('prefill')){
                     return;
@@ -166,18 +385,12 @@ function eventsInitialize(){
                     activeCell.classList.remove('active');
                 }
 
-                activeCell = cell;
+                activeCell = e.target;
                 activeCell.classList.add('active');
             });
 
         }
     }
-
-    cells.forEach(element => {
-        
-
-
-    });
 
 
 
@@ -198,33 +411,21 @@ function eventsInitialize(){
                 if there is a duplicat value in the col, row or square, 
                 we add the error animation 
             */
-            duplicate_positions = findDuplicates(row, col, e.key);
-            if(duplicates.length != 0){
-                duplicate_positions.forEach(pos => {
-                    duplicateCell = document.getElementById(`${pos[0]}${pos[1]}`);
-                    if(duplicateCell.classList.contains("prefill")){
-                        duplicateCell.classList.add("prefill-error");
-                    } else{
-                        duplicateCell.classList.add("error");
-                    }
 
-                    
-                    // The following code retriggers the animation for the cells that was 
-                    // already animated with the error animation before.
-                    duplicateCell.style.animation = 'none';
-                    duplicateCell.offsetHeight;
-                    duplicateCell.style.animation = null;
-                });
+            var any_cell_marked = markErrorCells(row, col, parseInt(e.key));
 
+            if(any_cell_marked){
+                // If any cell was marked, then current cell is also an error
                 activeCell.classList.add("error");
             } else{
-
-                // The current cell is not an error. but if it was an error before, we need to remove that.
+                // If the current cell was error for the previous value, 
+                // but then for the current value it is no longer an error, 
+                //then we need to remove the .error class
                 activeCell.classList.remove("error")
             }
 
             // Set the new value in the board
-            board[row][col] = e.key
+            board[row][col] = parseInt(e.key);
             activeCell.innerHTML = e.key;
 
 
@@ -249,6 +450,30 @@ function eventsInitialize(){
             removeErrorCells(row, col, previous_value);
         }
     });
+
+    // Button Events
+    // Button - New Game
+    document.querySelector(".btn-new-game").addEventListener('click', async e=>{
+        await getNewBoard();
+
+        // Changing the DOM board
+        for (let row = 0; row < board.length; row++) {
+            for (let col = 0; col < board[1].length; col++) {
+                var cell = cells[row][col];
+                if(board[row][col] == 0){
+                    cell.classList.remove("prefill");
+                    cell.innerHTML = ""
+                } else{
+                    cell.classList.add("prefill");
+                    cell.innerHTML = board[row][col];
+                }
+            }
+            
+        }
+    });
+    
+    // Button - Solve
+    document.querySelector(".btn-solve").addEventListener('click', solver);
 
 }
 
@@ -295,12 +520,18 @@ function gameInitialize(){
 
     // Adding the initialize events
     eventsInitialize();
-}
+}    
 
 
-    
+/* 
+    Function: solve
+    Parameter: N/A
+    Return Value: true/false -> if the board was solved or not.
 
+    Function Description:
+        A recursive function that solves the board.
 
+*/
 async function solve() {
     let row, col;
     [row, col] = findEmptyCell();
@@ -329,7 +560,7 @@ async function solve() {
 
 
                 resolve(p);
-            }, SOLVER_SPEE);
+            }, SOLVER_SPEED);
         });
 
         let possible = await possible_promise;
@@ -341,7 +572,7 @@ async function solve() {
             activeCell.innerHTML = val;
 
             let myWait = new Promise(function(resolve){
-                setTimeout(function () { resolve(solve()) }, SOLVER_SPEE);
+                setTimeout(function () { resolve(solve()) }, SOLVER_SPEED);
             });
 
             var wait = await myWait;
@@ -370,7 +601,21 @@ async function solve() {
 
 }
 
+/* 
+    Function: solver
+    Parameter: N/A
+    Return Value: N/A
+
+    Function Description:
+        This function handels all the pre and post works of solving a board, and call solve() 
+        to solve the board. 
+
+*/
 async function solver(){
+    // Reset the baord to it's original state
+    resetBoard();
+
+
     var solved = await solve();
 
     if(solved){
@@ -383,117 +628,6 @@ async function solver(){
     }
 }
 
-// This function is similar to the isPossible function, but instead of returning true/false
-// it returns an array of the value matching cells.
 
-function findDuplicates(row, col, val){
-    duplicates = [];
-
-    // Checking Row 
-    for (let i = 0; i < 9.; i++) {
-        if (board[row][i] == val) {
-            duplicates.push([row, i]);
-        }
-    }
-
-    // Checking Column
-    for (let i = 0; i < 9.; i++) {
-        if (board[i][col] == val) {
-            duplicates.push([i, col]);
-        }
-    }
-
-
-    sq_row = Math.floor(row/3);
-    sq_col = Math.floor(col/3);
-
-    for (let i = sq_row*3; i < (sq_row*3)+3; i++) {
-        for (let j = sq_col*3; j < (sq_col*3)+3; j++) {
-            if(board[i][j] == val) {
-                duplicates.push([i, j]);
-            }
-        }
-        
-    }
-
-    return duplicates;
-}
-
-function markErrorCells(row, col, val) {
-    // If there is a duplicat value in the col, row or square, we add an animation
-    duplicate_positions = findDuplicates(row, col, val);
-    duplicate_positions.forEach(pos => {
-        duplicateCell = document.getElementById(`${pos[0]}${pos[1]}`);
-        if(duplicateCell.classList.contains("prefill")){
-            duplicateCell.classList.add("prefill-error");
-        } else{
-            duplicateCell.classList.add("error");
-        }
-        
-        // The following code retriggers the animation for the cells that was already
-        // animated once before.
-        duplicateCell.style.animation = 'none';
-        duplicateCell.offsetHeight;
-        duplicateCell.style.animation = null;
-    });
-
-    return true;
-}
-
-function removeErrorCells(row, col, val){
-    duplicate_positions = findDuplicates(row, col, val);
-        duplicate_positions.forEach(pos=>{
-
-            // We are setting the value of the target cell to 0,
-            // because we will be calling the isPossible function which expects the value to NOT
-            // be inserted in the targetted cell. 
-            // We have changed the cell's value back to it's original value later on.
-            board[pos[0]][pos[1]] = 0;
-
-            if(isPossible(pos[0], pos[1], val)){
-                error_cell = document.getElementById(`${pos[0]}${pos[1]}`);
-
-                error_cell.classList.remove("error");
-                error_cell.classList.remove("prefill-error");
-            }
-
-            // Changing the cells value to its original value.
-            board[pos[0]][pos[1]] = val;
-        });
-
-
-}
-
-
-async function getNewBoard(){
-    const api_call = await fetch("https://sudoku-api.vercel.app/api/dosuku");
-    var api_board = await api_call.json();
-    if(api_board.newboard.message != "All Ok"){
-        alert("Something Went Wrong!");
-    } else{
-        board = api_board.newboard.grids[0].value;
-        solution = api_board.newboard.grids[0].solution;
-    }
-}
-
-document.querySelector(".btn-new-game").addEventListener('click', async e=>{
-    await getNewBoard();
-    console.log("Done")
-    for (let row = 0; row < board.length; row++) {
-        for (let col = 0; col < board[1].length; col++) {
-            cell = document.getElementById(`${row}${col}`);
-            if(board[row][col] == 0){
-                cell.classList.remove("prefill");
-                cell.innerHTML = ""
-            } else{
-                cell.classList.add("prefill");
-                cell.innerHTML = board[row][col];
-            }
-        }
-        
-    }
-});
-
-document.querySelector(".btn-solve").addEventListener('click', solver);
-
+// Initializing the game
 gameInitialize();
