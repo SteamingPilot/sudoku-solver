@@ -2,7 +2,8 @@
 // 1. Global Variables
 
 // Maintains the speed of the solver in ms. Defualt to 100ms.
-var SOLVER_SPEED = 100;
+var SOLVER_SPEED = 1;
+var IS_SOLVING = false;
 
 // The Game Board. The users interact with this
 var board = [
@@ -45,7 +46,9 @@ var cells = [];
 // The cell that is selected by the user or the computer when solving.
 var activeCell = null;
 
-var IS_SOLVING = false;
+
+var controller = new AbortController();
+
 
 // FUNCTIONS
 // Utility Functions
@@ -305,19 +308,135 @@ function resetBoard() {
             var cell = cells[row][col];
 
             // Removing all sorts of external classes
+            cell.classList.remove("prefill");
+
             cell.classList.remove("active");
+            cell.classList.remove("complete-computer");
+
             cell.classList.remove("error");
             cell.classList.remove("prefill-error");
+
+
+            
 
             // Set Unfilled Cells to nothing
             if(board[row][col] == 0){
                 cell.innerHTML = ""
+            } else {
+                cell.innerHTML = board[row][col];
+                cell.classList.add("prefill")
             }
         }
         
     }
 
 }
+
+function copySolutionToMainBoard(){
+    board = JSON.parse(JSON.stringify(solution));
+}
+
+function removeBoardEventListeners(){
+    window.removeEventListener('keyup', event_keyPress);
+
+    for (let row = 0; row < cells.length; row++) {
+        for (let col = 0; col < cells[0].length; col++) {
+            var cell = cells[row][col];
+            cell.removeEventListener('click', event_clickCells);
+        }
+        
+    }
+}
+
+function addEventListener_keyPress(){
+    // // Adding keyboard press event
+    // // This event will allow users to write numbers to the selected cells
+    window.addEventListener("keyup", event_keyPress);
+}
+
+
+function event_keyPress(e) {
+    // To ensure we only edit the active selected cell.
+    if (activeCell == null) return;
+
+    if (e.key >= 1 && e.key <= 9) {
+        row = parseInt(activeCell.id[0]);
+        col = parseInt(activeCell.id[1]);
+        previous_value = board[row][col];
+
+
+        /*  
+            After editing a value of the cell
+            if there is a duplicat value in the col, row or square, 
+            we add the error animation 
+        */
+
+        var any_cell_marked = markErrorCells(row, col, parseInt(e.key));
+
+        if(any_cell_marked){
+            // If any cell was marked, then current cell is also an error
+            activeCell.classList.add("error");
+        } else{
+            // If the current cell was error for the previous value, 
+            // but then for the current value it is no longer an error, 
+            //then we need to remove the .error class
+            activeCell.classList.remove("error")
+        }
+
+        // Set the new value in the board
+        board[row][col] = parseInt(e.key);
+        activeCell.innerHTML = e.key;
+
+
+        /*
+        Removing Other Error Cells that were cause by the previous 
+        value (before the current edit) of the current cell. 
+        */
+        removeErrorCells(row, col, previous_value);
+
+    } else if(e.key == 'Backspace' || e.key == 0){
+        row = parseInt(activeCell.id[0]);
+        col = parseInt(activeCell.id[1]);
+        
+        previous_value = board[row][col];
+        board[row][col] = 0
+        activeCell.innerHTML = "";
+
+        // Removing the error mark of the active cell
+        activeCell.classList.remove("error");
+
+        // We also have to remove other error cells that was getting error as a result of the value of the current cell
+        removeErrorCells(row, col, previous_value);
+    }
+}
+
+function addEventListener_clickCells(){
+    // Adding the click event to all empty cells. 
+    // This will select a cell to be edited with numbers.
+    for (let i = 0; i < 9; i++) {
+        for (let j = 0; j < 9; j++) {
+            var cell = cells[i][j];
+            cell.addEventListener("click", event_clickCells);
+        }
+    }
+    
+}
+
+function event_clickCells(e){
+    if (e.target.classList.contains('prefill')){
+        return;
+    }
+
+    if (activeCell != null) {
+        // If any other cell was already active,  
+        // we need to remove the .active class from it
+        activeCell.classList.remove('active');
+    }
+
+    activeCell = e.target;
+    activeCell.classList.add('active');
+}
+
 
 
 // Main Functions
@@ -343,8 +462,8 @@ async function getNewBoard(){
     if(api_board.newboard.message != "All Ok"){
         alert("Something Went Wrong!");
     } else{
-        board = api_board.newboard.grids[0].value;
-        original_board = JSON.parse(JSON.stringify(board));
+        original_board = api_board.newboard.grids[0].value;
+        board = JSON.parse(JSON.stringify(original_board));
         solution = api_board.newboard.grids[0].solution;
     }
 }
@@ -367,110 +486,26 @@ async function getNewBoard(){
 
 function eventsInitialize(){
     // Adding the click event to all empty cells. 
-    // This will select a cell to be edited with numbers.
-
-    for (let i = 0; i < 9; i++) {
-        for (let j = 0; j < 9; j++) {
-            var cell = cells[i][j];
-
-            cell.addEventListener("click", e => {
-                
-                // The Prefilled Cells cannot be active
-                if (cell.classList.contains('prefill')){
-                    return;
-                }
-
-                if (activeCell != null) {
-                    // If any other cell was already active,  
-                    // we need to remove the .active class from it
-                    activeCell.classList.remove('active');
-                }
-
-                activeCell = e.target;
-                activeCell.classList.add('active');
-            });
-
-        }
-    }
+    addEventListener_clickCells();
 
 
-
-    // // Adding keyboard press event
-    // // This event will allow users to write numbers to the selected cells
-    window.addEventListener("keyup", (e) => {
-        // To ensure we only edit the active selected cell.
-        if (activeCell == null) return;
-
-        if (e.key >= 1 && e.key <= 9) {
-            row = parseInt(activeCell.id[0]);
-            col = parseInt(activeCell.id[1]);
-            previous_value = board[row][col];
-
-
-            /*  
-                After editing a value of the cell
-                if there is a duplicat value in the col, row or square, 
-                we add the error animation 
-            */
-
-            var any_cell_marked = markErrorCells(row, col, parseInt(e.key));
-
-            if(any_cell_marked){
-                // If any cell was marked, then current cell is also an error
-                activeCell.classList.add("error");
-            } else{
-                // If the current cell was error for the previous value, 
-                // but then for the current value it is no longer an error, 
-                //then we need to remove the .error class
-                activeCell.classList.remove("error")
-            }
-
-            // Set the new value in the board
-            board[row][col] = parseInt(e.key);
-            activeCell.innerHTML = e.key;
-
-
-            /*
-            Removing Other Error Cells that were cause by the previous 
-            value (before the current edit) of the current cell. 
-            */
-            removeErrorCells(row, col, previous_value);
-
-        } else if(e.key == 'Backspace' || e.key == 0){
-            row = parseInt(activeCell.id[0]);
-            col = parseInt(activeCell.id[1]);
-            
-            previous_value = board[row][col];
-            board[row][col] = 0
-            activeCell.innerHTML = "";
-
-            // Removing the error mark of the active cell
-            activeCell.classList.remove("error");
-
-            // We also have to remove other error cells that was getting error as a result of the value of the current cell
-            removeErrorCells(row, col, previous_value);
-        }
-    });
+    // Adding keyboard press event
+    addEventListener_keyPress();
 
     // Button Events
     // Button - New Game
+
     document.querySelector(".btn-new-game").addEventListener('click', async e=>{
+        IS_SOLVING = false;
         await getNewBoard();
 
         // Changing the DOM board
-        for (let row = 0; row < board.length; row++) {
-            for (let col = 0; col < board[1].length; col++) {
-                var cell = cells[row][col];
-                if(board[row][col] == 0){
-                    cell.classList.remove("prefill");
-                    cell.innerHTML = ""
-                } else{
-                    cell.classList.add("prefill");
-                    cell.innerHTML = board[row][col];
-                }
-            }
-            
-        }
+        resetBoard();
+
+        // Reassign events
+        addEventListener_clickCells();
+        addEventListener_keyPress();
+
     });
     
     // Button - Solve
@@ -534,6 +569,8 @@ function gameInitialize(){
 
 */
 async function solve() {
+    if(!IS_SOLVING) return false;
+
     let row, col;
     [row, col] = findEmptyCell();
 
@@ -617,6 +654,13 @@ async function solver(){
     resetBoard();
 
     IS_SOLVING = true;
+    var new_game_btn = document.querySelector(".btn-new-game")
+    new_game_btn.disabled = true;
+    new_game_btn.classList.add("btn-disabled");
+
+    // Disable the KeyPress and Click Cell event listeners
+    removeBoardEventListeners();
+
     var solved = await solve();
 
     if(solved){
@@ -626,7 +670,26 @@ async function solver(){
             const prefille_element = prefilled[i];
             prefille_element.classList.remove("prefill");
         }
+
+        // Showing the toast message
+        $.toast({
+            text : "Board Solved!",
+            showHideTransition: 'plain',
+            allowToastClose: true,
+            hideAfter: 1500,
+            loader: false,
+            position: 'top-center',
+            bgColor: '#5cb85c',
+            textColor: "#fff",
+            textAlign: "center",
+          });
     }
+
+    IS_SOLVING = false;
+    new_game_btn.disabled = false;
+    new_game_btn.classList.remove("btn-disabled");
+
+    
 }
 
 

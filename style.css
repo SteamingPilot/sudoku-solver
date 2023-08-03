@@ -148,6 +148,17 @@ html *{
     opacity: 0.5;
 }
 
+/* Button - Disabled */
+.btn-disabled{
+    background-color: rgba(0,0,0,0.05) !important;
+    color: rgba(0,0,0,0.5) !important;
+    cursor:default;
+}
+
+.btn-disabled:hover{
+    opacity: 1 !important;
+}
+
 /* Button - New Game  */
 .btn-new-game{
     background-color: var(--color-blue);
