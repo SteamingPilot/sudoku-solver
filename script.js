@@ -47,6 +47,8 @@ var cells = [];
 var activeCell = null;
 
 
+var controller = new AbortController();
+
 
 // FUNCTIONS
 // Utility Functions
@@ -334,85 +336,17 @@ function copySolutionToMainBoard(){
     board = JSON.parse(JSON.stringify(solution));
 }
 
-
-// Main Functions
-
-/*
-    Function: getNewBoard
-    
-    Function Description:
-        Gets a new sudoku board by calling an api. It updates both the board variable
-        and the sudoku variable.
-
-    Parameters: 
-        N/A
-
-    Return Value: 
-        N/A
-
-
-*/
-async function getNewBoard(){
-    const api_call = await fetch("https://sudoku-api.vercel.app/api/dosuku");
-    var api_board = await api_call.json();
-    if(api_board.newboard.message != "All Ok"){
-        alert("Something Went Wrong!");
-    } else{
-        original_board = api_board.newboard.grids[0].value;
-        board = JSON.parse(JSON.stringify(original_board));
-        solution = api_board.newboard.grids[0].solution;
-    }
+function removeBoardEventListeners(){
+    controller.abort();
 }
 
-/*
-    Function: Events Initialize
-    Parameters: N/A
-    Return Value: N/A
-
-    Function Description:
-        This functions adds event listeners to game. 
-        Like: 
-            Click events to all the cells.
-            Window events for Key presses, and so on.
-
-    NOTE: Please call this function only after cells array has been populated.
-    Because it requires the baord DOM to be ready to add the events.
-				
-*/
-
-function eventsInitialize(){
-    // Adding the click event to all empty cells. 
-    // This will select a cell to be edited with numbers.
-
-    for (let i = 0; i < 9; i++) {
-        for (let j = 0; j < 9; j++) {
-            var cell = cells[i][j];
-
-            cell.addEventListener("click", e => {
-                
-                // The Prefilled Cells cannot be active
-                if (cell.classList.contains('prefill')){
-                    return;
-                }
-
-                if (activeCell != null) {
-                    // If any other cell was already active,  
-                    // we need to remove the .active class from it
-                    activeCell.classList.remove('active');
-                }
-
-                activeCell = e.target;
-                activeCell.classList.add('active');
-            });
-
-        }
-    }
-
-
-
+function addEventListener_keyPress(){
     // // Adding keyboard press event
     // // This event will allow users to write numbers to the selected cells
     window.addEventListener("keyup", (e) => {
+        controller = new AbortController();
+        signal = controller.signal;
+
         // To ensure we only edit the active selected cell.
         if (activeCell == null) return;
 
@@ -466,17 +400,112 @@ function eventsInitialize(){
             removeErrorCells(row, col, previous_value);
         }
     });
+}
+
+
+function addEventListener_clickCells(){
+    controller = new AbortController();
+    signal = controller.signal;
+
+    // Adding the click event to all empty cells. 
+    // This will select a cell to be edited with numbers.
+
+    for (let i = 0; i < 9; i++) {
+        for (let j = 0; j < 9; j++) {
+            var cell = cells[i][j];
+
+            cell.addEventListener("click", e => {
+                // The Prefilled Cells cannot be active
+                if (cell.classList.contains('prefill')){
+                    return;
+                }
+
+                if (activeCell != null) {
+                    // If any other cell was already active,  
+                    // we need to remove the .active class from it
+                    activeCell.classList.remove('active');
+                }
+
+                activeCell = e.target;
+                activeCell.classList.add('active');
+            }, 
+                {signal: controller.signal}
+            );
+
+            
+
+        }
+    }
+    
+}
+
+// Main Functions
+
+/*
+    Function: getNewBoard
+    
+    Function Description:
+        Gets a new sudoku board by calling an api. It updates both the board variable
+        and the sudoku variable.
+
+    Parameters: 
+        N/A
+
+    Return Value: 
+        N/A
+
+
+*/
+async function getNewBoard(){
+    const api_call = await fetch("https://sudoku-api.vercel.app/api/dosuku");
+    var api_board = await api_call.json();
+    if(api_board.newboard.message != "All Ok"){
+        alert("Something Went Wrong!");
+    } else{
+        original_board = api_board.newboard.grids[0].value;
+        board = JSON.parse(JSON.stringify(original_board));
+        solution = api_board.newboard.grids[0].solution;
+    }
+}
+
+/*
+    Function: Events Initialize
+    Parameters: N/A
+    Return Value: N/A
+
+    Function Description:
+        This functions adds event listeners to game. 
+        Like: 
+            Click events to all the cells.
+            Window events for Key presses, and so on.
+
+    NOTE: Please call this function only after cells array has been populated.
+    Because it requires the baord DOM to be ready to add the events.
+				
+*/
+
+function eventsInitialize(){
+    // Adding the click event to all empty cells. 
+    addEventListener_clickCells();
+
+
+    // Adding keyboard press event
+    addEventListener_keyPress();
 
     // Button Events
     // Button - New Game
 
     document.querySelector(".btn-new-game").addEventListener('click', async e=>{
         IS_SOLVING = false;
-        copySolutionToMainBoard();
         await getNewBoard();
 
         // Changing the DOM board
         resetBoard();
+
+        // Reassign events
+        addEventListener_clickCells();
+        addEventListener_keyPress();
+
     });
     
     // Button - Solve
@@ -629,6 +658,9 @@ async function solver(){
     new_game_btn.disabled = true;
     new_game_btn.classList.add("btn-disabled");
 
+    // Disable the KeyPress and Click Cell event listeners
+    controller.abort();
+
     var solved = await solve();
 
     if(solved){
@@ -638,11 +670,25 @@ async function solver(){
             const prefille_element = prefilled[i];
             prefille_element.classList.remove("prefill");
         }
+
+        // Showing the toast message
+        $.toast({
+            text : "Board Solved!",
+            showHideTransition: 'plain',
+            allowToastClose: true,
+            hideAfter: 1500,
+            loader: false,
+            position: 'top-center',
+            bgColor: '#5cb85c',
+            textColor: "#fff",
+            textAlign: "center",
+          });
     }
 
     IS_SOLVING = false;
     new_game_btn.disabled = false;
     new_game_btn.classList.remove("btn-disabled");
+
     
 }
 
