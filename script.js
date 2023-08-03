@@ -337,107 +337,107 @@ function copySolutionToMainBoard(){
 }
 
 function removeBoardEventListeners(){
-    controller.abort();
+    window.removeEventListener('keyup', event_keyPress);
+
+    for (let row = 0; row < cells.length; row++) {
+        for (let col = 0; col < cells[0].length; col++) {
+            var cell = cells[row][col];
+            cell.removeEventListener('click', event_clickCells);
+        }
+        
+    }
 }
 
 function addEventListener_keyPress(){
     // // Adding keyboard press event
     // // This event will allow users to write numbers to the selected cells
-    window.addEventListener("keyup", (e) => {
-        controller = new AbortController();
-        signal = controller.signal;
-
-        // To ensure we only edit the active selected cell.
-        if (activeCell == null) return;
-
-        if (e.key >= 1 && e.key <= 9) {
-            row = parseInt(activeCell.id[0]);
-            col = parseInt(activeCell.id[1]);
-            previous_value = board[row][col];
-
-
-            /*  
-                After editing a value of the cell
-                if there is a duplicat value in the col, row or square, 
-                we add the error animation 
-            */
-
-            var any_cell_marked = markErrorCells(row, col, parseInt(e.key));
-
-            if(any_cell_marked){
-                // If any cell was marked, then current cell is also an error
-                activeCell.classList.add("error");
-            } else{
-                // If the current cell was error for the previous value, 
-                // but then for the current value it is no longer an error, 
-                //then we need to remove the .error class
-                activeCell.classList.remove("error")
-            }
-
-            // Set the new value in the board
-            board[row][col] = parseInt(e.key);
-            activeCell.innerHTML = e.key;
-
-
-            /*
-            Removing Other Error Cells that were cause by the previous 
-            value (before the current edit) of the current cell. 
-            */
-            removeErrorCells(row, col, previous_value);
-
-        } else if(e.key == 'Backspace' || e.key == 0){
-            row = parseInt(activeCell.id[0]);
-            col = parseInt(activeCell.id[1]);
-            
-            previous_value = board[row][col];
-            board[row][col] = 0
-            activeCell.innerHTML = "";
-
-            // Removing the error mark of the active cell
-            activeCell.classList.remove("error");
-
-            // We also have to remove other error cells that was getting error as a result of the value of the current cell
-            removeErrorCells(row, col, previous_value);
-        }
-    });
+    window.addEventListener("keyup", event_keyPress);
 }
 
 
-function addEventListener_clickCells(){
-    controller = new AbortController();
-    signal = controller.signal;
+function event_keyPress(e) {
+    // To ensure we only edit the active selected cell.
+    if (activeCell == null) return;
 
+    if (e.key >= 1 && e.key <= 9) {
+        row = parseInt(activeCell.id[0]);
+        col = parseInt(activeCell.id[1]);
+        previous_value = board[row][col];
+
+
+        /*  
+            After editing a value of the cell
+            if there is a duplicat value in the col, row or square, 
+            we add the error animation 
+        */
+
+        var any_cell_marked = markErrorCells(row, col, parseInt(e.key));
+
+        if(any_cell_marked){
+            // If any cell was marked, then current cell is also an error
+            activeCell.classList.add("error");
+        } else{
+            // If the current cell was error for the previous value, 
+            // but then for the current value it is no longer an error, 
+            //then we need to remove the .error class
+            activeCell.classList.remove("error")
+        }
+
+        // Set the new value in the board
+        board[row][col] = parseInt(e.key);
+        activeCell.innerHTML = e.key;
+
+
+        /*
+        Removing Other Error Cells that were cause by the previous 
+        value (before the current edit) of the current cell. 
+        */
+        removeErrorCells(row, col, previous_value);
+
+    } else if(e.key == 'Backspace' || e.key == 0){
+        row = parseInt(activeCell.id[0]);
+        col = parseInt(activeCell.id[1]);
+        
+        previous_value = board[row][col];
+        board[row][col] = 0
+        activeCell.innerHTML = "";
+
+        // Removing the error mark of the active cell
+        activeCell.classList.remove("error");
+
+        // We also have to remove other error cells that was getting error as a result of the value of the current cell
+        removeErrorCells(row, col, previous_value);
+    }
+}
+
+function addEventListener_clickCells(){
     // Adding the click event to all empty cells. 
     // This will select a cell to be edited with numbers.
-
     for (let i = 0; i < 9; i++) {
         for (let j = 0; j < 9; j++) {
             var cell = cells[i][j];
-
-            cell.addEventListener("click", e => {
-                // The Prefilled Cells cannot be active
-                if (cell.classList.contains('prefill')){
-                    return;
-                }
-
-                if (activeCell != null) {
-                    // If any other cell was already active,  
-                    // we need to remove the .active class from it
-                    activeCell.classList.remove('active');
-                }
-
-                activeCell = e.target;
-                activeCell.classList.add('active');
-            }, 
-                {signal: controller.signal}
-            );
-
-            
-
+            cell.addEventListener("click", event_clickCells);
         }
     }
     
 }
+
+function event_clickCells(e){
+    if (e.target.classList.contains('prefill')){
+        return;
+    }
+
+    if (activeCell != null) {
+        // If any other cell was already active,  
+        // we need to remove the .active class from it
+        activeCell.classList.remove('active');
+    }
+
+    activeCell = e.target;
+    activeCell.classList.add('active');
+}
+
+
 
 // Main Functions
 
@@ -659,7 +659,7 @@ async function solver(){
     new_game_btn.classList.add("btn-disabled");
 
     // Disable the KeyPress and Click Cell event listeners
-    controller.abort();
+    removeBoardEventListeners();
 
     var solved = await solve();
 
