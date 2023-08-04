@@ -217,7 +217,7 @@ function findEmptyCell(){
 */
 
 function markErrorCells(row, col, val) {
-    // If there is a duplicat value in the col, row or square, we add an animation
+    // If there is a duplicate value in the col, row or square, we add an animation
     duplicate_positions = findDuplicates(row, col, val);
 
     if (duplicate_positions.length != 0) {
@@ -259,6 +259,10 @@ function markErrorCells(row, col, val) {
 
     Return Value: 
         N/A
+
+    
+    Note: Please update the board with the new value before calling this function.
+    Meaning: board[row][col] = NEW_VALUE should be executed before this function is called.
 
 
 */
@@ -437,6 +441,39 @@ function event_clickCells(e){
     activeCell.classList.add('active');
 }
 
+function addEventListener_numpadClick(){
+    numbers = document.getElementsByClassName("number")
+
+    for (let i = 0; i < numbers.length; i++) {
+        const number = numbers[i];
+        number.addEventListener("click", event_numpadClick);
+    }
+}
+
+function event_numpadClick(e){
+    if (activeCell == null) return;
+    
+    var row = parseInt(activeCell.id[0]);
+    var col = parseInt(activeCell.id[1]);
+    var value = parseInt(e.target.innerHTML) 
+    
+    previous_value = board[row][col];
+
+
+    isError = markErrorCells(row, col, value);
+
+    if (isError) {
+        activeCell.classList.add("error");
+    } else{
+        activeCell.classList.remove("error");
+    }
+
+    board[row][col] = value;
+    activeCell.innerHTML = value;
+
+    removeErrorCells(row, col, previous_value);
+}
+
 
 
 // Main Functions
@@ -491,6 +528,9 @@ function eventsInitialize(){
 
     // Adding keyboard press event
     addEventListener_keyPress();
+
+    // Adding Numpad click event
+    addEventListener_numpadClick();
 
     // Button Events
     // Button - New Game
@@ -654,9 +694,21 @@ async function solver(){
     resetBoard();
 
     IS_SOLVING = true;
+    activeCell = null;
+
+    // disabling the new game button and numpad keys
     var new_game_btn = document.querySelector(".btn-new-game")
     new_game_btn.disabled = true;
     new_game_btn.classList.add("btn-disabled");
+    
+    var numbers = document.querySelectorAll(".number");
+    for (let i = 0; i < numbers.length; i++) {
+        const number = numbers[i];
+        number.classList.add("number-disabled");
+    }
+
+
+
 
     // Disable the KeyPress and Click Cell event listeners
     removeBoardEventListeners();
@@ -685,9 +737,17 @@ async function solver(){
           });
     }
 
+
     IS_SOLVING = false;
+
+
     new_game_btn.disabled = false;
     new_game_btn.classList.remove("btn-disabled");
+
+    for (let i = 0; i < numbers.length; i++) {
+        const number = numbers[i];
+        number.classList.remove("number-disabled");
+    }
 
     
 }

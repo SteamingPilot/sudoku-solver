@@ -130,11 +130,8 @@ html *{
     flex-direction: column;
 }
 
-/* Buttons */
+/* Left Bar - Buttons */
 /* Button - Container  */
-.btn-container{
-    /*! margin-top: 20px; */
-}
 
 /* Button Style  */
 .btn{
@@ -145,7 +142,6 @@ html *{
     text-shadow: none;
     border-radius: 5px;
     border: 1px solid var(--color-black);
-    /*! margin: 10px; */
     cursor: pointer;
 }
 
@@ -209,8 +205,27 @@ html *{
     margin: 2.5px;
     border-radius: 4px;
     background-color: var(--color-blue);
+    cursor: pointer;
 }
 
+.number:hover{
+    opacity: 0.75;
+}
+
+.number:active{
+    opacity: 0.5;
+}
+
+.number-disabled{
+    background-color: rgba(0,0,0,0.05) !important;
+    color: rgba(0,0,0,0.5) !important;
+    cursor:default;
+    border: 1px solid var(--color-black);
+}
+
+.number-disabled:hover{
+    opacity: 1 !important;
+}
 
 
 /* Animations */
