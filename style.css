@@ -183,6 +183,7 @@ html *{
     flex-direction: column;
     justify-content: center;
     align-items: center;
+    margin-top: 50px;
 }
 /* Numbers */
 .numbers{
@@ -226,6 +227,47 @@ html *{
 .number-disabled:hover{
     opacity: 1 !important;
 }
+
+/* Range Slider  */
+.range-container{
+    display: flex;
+    flex-direction: column;
+    margin-top: 10px;
+}
+#rangeValue {
+    /* position: relative; */
+    /* display: block; */
+    text-align: center;
+    font-size: 20px;
+    color: #999;
+    font-weight: 400;
+    margin-bottom: 5px;
+    text-align: left;
+    margin-left: 5px;
+  }
+
+
+.range {
+    width: 310px;
+    height: 15px;
+    -webkit-appearance: none;
+    background: var(--color-black);
+    outline: none;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: inset 0 0 5px rgba(0, 0, 0, 1);
+  }
+  .range::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    background: var(--color-green);
+    cursor: pointer;
+    border: 4px solid #333;
+    box-shadow: -407px 0 0 400px #00fd0a;
+  }
+  
 
 
 /* Animations */

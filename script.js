@@ -551,6 +551,14 @@ function eventsInitialize(){
     // Button - Solve
     document.querySelector(".btn-solve").addEventListener('click', solver);
 
+    // Range Slider
+    document.querySelector(".range").defaultValue = SOLVER_SPEED;
+
+}
+
+function rangeSlide(value){
+    SOLVER_SPEED = value;
+    document.getElementById("rangeValue").innerHTML = `Solving Speed ${Math.abs(501)-value}`;
 }
 
 /* 
