@@ -2,37 +2,48 @@
 // 1. Global Variables
 
 // Maintains the speed of the solver in ms. Defualt to 100ms.
-var SOLVER_SPEED = 1;
+var SOLVER_SPEED = 250;
 var IS_SOLVING = false;
 
 // The Game Board. The users interact with this
 var board = [
-                [0, 0, 0, 2, 6, 0, 7, 0, 1],
-                [6, 8, 0, 0, 7, 0, 0, 9, 0],
-                [1, 9, 0, 0, 0, 4, 5, 0, 0],
-                [8, 2, 0, 1, 0, 0, 0, 4, 0],
-                [0, 0, 4, 6, 0, 2, 9, 0, 0],
-                [0, 5, 0, 0, 0, 3, 0, 2, 8],
-                [0, 0, 9, 3, 0, 0, 0, 7, 4],
-                [0, 4, 0, 0, 5, 0, 0, 3, 6],
-                [7, 0, 3, 0, 1, 8, 0, 0, 0]
-            ];
+            [0, 0, 0, 2, 6, 0, 7, 0, 1],
+            [6, 8, 0, 0, 7, 0, 0, 9, 0],
+            [1, 9, 0, 0, 0, 4, 5, 0, 0],
+            [8, 2, 0, 1, 0, 0, 0, 4, 0],
+            [0, 0, 4, 6, 0, 2, 9, 0, 0],
+            [0, 5, 0, 0, 0, 3, 0, 2, 8],
+            [0, 0, 9, 3, 0, 0, 0, 7, 4],
+            [0, 4, 0, 0, 5, 0, 0, 3, 6],
+            [7, 0, 3, 0, 1, 8, 0, 0, 0]
+        ];
+
 
 // This is used to reset the board to it's original state.
 var original_board = [
-                        [0, 0, 0, 2, 6, 0, 7, 0, 1],
-                        [6, 8, 0, 0, 7, 0, 0, 9, 0],
-                        [1, 9, 0, 0, 0, 4, 5, 0, 0],
-                        [8, 2, 0, 1, 0, 0, 0, 4, 0],
-                        [0, 0, 4, 6, 0, 2, 9, 0, 0],
-                        [0, 5, 0, 0, 0, 3, 0, 2, 8],
-                        [0, 0, 9, 3, 0, 0, 0, 7, 4],
-                        [0, 4, 0, 0, 5, 0, 0, 3, 6],
-                        [7, 0, 3, 0, 1, 8, 0, 0, 0]
-                    ];
+    [0, 0, 0, 2, 6, 0, 7, 0, 1],
+    [6, 8, 0, 0, 7, 0, 0, 9, 0],
+    [1, 9, 0, 0, 0, 4, 5, 0, 0],
+    [8, 2, 0, 1, 0, 0, 0, 4, 0],
+    [0, 0, 4, 6, 0, 2, 9, 0, 0],
+    [0, 5, 0, 0, 0, 3, 0, 2, 8],
+    [0, 0, 9, 3, 0, 0, 0, 7, 4],
+    [0, 4, 0, 0, 5, 0, 0, 3, 6],
+    [7, 0, 3, 0, 1, 8, 0, 0, 0]
+];
 
 // The Solution of the Board.
-var solution = [];
+var solution = [
+                    [4,3,5,2,6,9,7,8,1],
+                    [6,8,2,5,7,1,4,9,3],
+                    [1,9,7,8,3,4,5,6,2],
+                    [8,2,6,1,9,5,3,4,7],
+                    [3,7,4,6,8,2,9,1,5],
+                    [9,5,1,7,4,3,6,2,8],
+                    [5,1,9,3,2,6,8,7,4],
+                    [2,4,8,9,5,7,1,3,6],
+                    [7,6,3,4,1,8,2,5,9]
+                ];
 
 
 
@@ -340,6 +351,15 @@ function copySolutionToMainBoard(){
     board = JSON.parse(JSON.stringify(solution));
 }
 
+function isBoardSolved(){
+    next_empty = findEmptyCell();
+    if (next_empty[0] == -1 && next_empty[1] == -1){
+        if(JSON.stringify(board) == JSON.stringify(solution)) return true;
+        return false;
+    } else return false;
+}
+
+
 function removeBoardEventListeners(){
     window.removeEventListener('keyup', event_keyPress);
 
@@ -397,6 +417,25 @@ function event_keyPress(e) {
         value (before the current edit) of the current cell. 
         */
         removeErrorCells(row, col, previous_value);
+        if(isBoardSolved()){
+            // Showing the toast message
+            $.toast({
+                text : "Congratulations! You solved the board.",
+                showHideTransition: 'plain',
+                allowToastClose: true,
+                hideAfter: 1500,
+                loader: false,
+                position: 'top-center',
+                bgColor: '#5cb85c',
+                textColor: "#fff",
+                textAlign: "center",
+            });
+
+            activeCell.classList.remove("active");
+            activeCell = null;
+            removeBoardEventListeners();
+        }
+
 
     } else if(e.key == 'Backspace' || e.key == 0){
         row = parseInt(activeCell.id[0]);
@@ -557,8 +596,8 @@ function eventsInitialize(){
 }
 
 function rangeSlide(value){
-    SOLVER_SPEED = value;
-    document.getElementById("rangeValue").innerHTML = `Solving Speed ${Math.abs(501)-value}`;
+    SOLVER_SPEED = Math.abs(501)-value;
+    document.getElementById("rangeValue").innerHTML = `Solving Speed: ${value}`;
 }
 
 /* 
@@ -743,6 +782,18 @@ async function solver(){
             textColor: "#fff",
             textAlign: "center",
           });
+    } else{
+        $.toast({
+            text : "Board Unsolvable!",
+            showHideTransition: 'plain',
+            allowToastClose: true,
+            hideAfter: 1500,
+            loader: false,
+            position: 'top-center',
+            bgColor: '#dc2524',
+            textColor: "#fff",
+            textAlign: "center",
+          });
     }
 
 
@@ -756,6 +807,9 @@ async function solver(){
         const number = numbers[i];
         number.classList.remove("number-disabled");
     }
+
+    eventsInitialize();
+
 
     
 }
