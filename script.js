@@ -207,6 +207,45 @@ function findEmptyCell(){
     return [-1, -1]
 }
 
+function findEditableCellOnArrowKey(arrow_key){
+    var curr_row = activeCell.id[0];
+    var curr_col = activeCell.id[1];
+
+    var row = curr_row;
+    var col = curr_col;
+
+    if(arrow_key == "ArrowUp"){
+        do{
+            row--;
+            if(row == -1) row=8;
+            if(row == curr_row) break;
+        } while(cells[row][col].classList.contains("prefill"));
+    } else if(arrow_key == "ArrowDown"){
+        do{
+            row++;
+            if(row == 9) row=0;
+            if(row == curr_row) break;
+        } while(cells[row][col].classList.contains("prefill"));
+        
+    } else if(arrow_key == "ArrowLeft"){
+        do{
+            col--;
+            if(col == -1) col=8;
+            if(col == curr_col) break;
+        } while(cells[row][col].classList.contains("prefill"));
+    } else if(arrow_key == "ArrowRight"){
+        do{
+            col++;
+            if(col == 9) col=0;
+            if(col == curr_col) break;
+        } while(cells[row][col].classList.contains("prefill"));
+    }
+
+    activeCell.classList.remove("active");
+    activeCell = cells[row][col];
+    activeCell.classList.add("active");
+}
+
 /*
     Function: markErrorCells
     
@@ -450,6 +489,8 @@ function event_keyPress(e) {
 
         // We also have to remove other error cells that was getting error as a result of the value of the current cell
         removeErrorCells(row, col, previous_value);
+    } else if(e.key == "ArrowUp" || e.key == "ArrowDown" || e.key == "ArrowLeft" || e.key == "ArrowRight" ){
+        findEditableCellOnArrowKey(e.key);
     }
 }
 
@@ -589,6 +630,9 @@ function eventsInitialize(){
     
     // Button - Solve
     document.querySelector(".btn-solve").addEventListener('click', solver);
+
+    // Button - Reset
+    document.querySelector(".btn-reset-game").addEventListener('click', resetBoard);
 
     // Range Slider
     document.querySelector(".range").defaultValue = SOLVER_SPEED;
@@ -743,16 +787,26 @@ async function solver(){
     IS_SOLVING = true;
     activeCell = null;
 
-    // disabling the new game button and numpad keys
+    // disabling the game buttons and numpad keys
     var new_game_btn = document.querySelector(".btn-new-game")
     new_game_btn.disabled = true;
     new_game_btn.classList.add("btn-disabled");
-    
+
+    var reset_game_btn = document.querySelector(".btn-reset-game")
+    reset_game_btn.disabled = true;
+    reset_game_btn.classList.add("btn-disabled");
+
+    var solve_game_btn = document.querySelector(".btn-solve")
+    solve_game_btn.disabled = true;
+    solve_game_btn.classList.add("btn-disabled");
+
+
     var numbers = document.querySelectorAll(".number");
     for (let i = 0; i < numbers.length; i++) {
         const number = numbers[i];
         number.classList.add("number-disabled");
     }
+
 
 
 
@@ -802,6 +856,15 @@ async function solver(){
 
     new_game_btn.disabled = false;
     new_game_btn.classList.remove("btn-disabled");
+
+    reset_game_btn.disabled = false;
+    reset_game_btn.classList.remove("btn-disabled");
+    
+    solve_game_btn.disabled = false;
+    solve_game_btn.classList.remove("btn-disabled");
+
+
+
 
     for (let i = 0; i < numbers.length; i++) {
         const number = numbers[i];
