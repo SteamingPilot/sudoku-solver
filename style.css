@@ -109,12 +109,19 @@ html *{
     background-color: rgba(0,0,0,0.15);
 }
 
+
 /* Board - Cell - Special - Errors Cell */
 .error{
     color: var(--color-red);
     background-color: var(--background-red);
     font-weight: 400;
     animation: growAndShrink 0.25s linear 0s 1 normal;
+}
+
+/* Board - Cell - Special - Errors Active Cell */
+.active.error{
+    color: var(--color-black);
+    font-weight: 600;
 }
 
 /* Board - Cell - Special - Prefilled Error Cells*/

@@ -207,6 +207,45 @@ function findEmptyCell(){
     return [-1, -1]
 }
 
+function findEditableCellOnArrowKey(arrow_key){
+    var curr_row = activeCell.id[0];
+    var curr_col = activeCell.id[1];
+
+    var row = curr_row;
+    var col = curr_col;
+
+    if(arrow_key == "ArrowUp"){
+        do{
+            row--;
+            if(row == -1) row=8;
+            if(row == curr_row) break;
+        } while(cells[row][col].classList.contains("prefill"));
+    } else if(arrow_key == "ArrowDown"){
+        do{
+            row++;
+            if(row == 9) row=0;
+            if(row == curr_row) break;
+        } while(cells[row][col].classList.contains("prefill"));
+        
+    } else if(arrow_key == "ArrowLeft"){
+        do{
+            col--;
+            if(col == -1) col=8;
+            if(col == curr_col) break;
+        } while(cells[row][col].classList.contains("prefill"));
+    } else if(arrow_key == "ArrowRight"){
+        do{
+            col++;
+            if(col == 9) col=0;
+            if(col == curr_col) break;
+        } while(cells[row][col].classList.contains("prefill"));
+    }
+
+    activeCell.classList.remove("active");
+    activeCell = cells[row][col];
+    activeCell.classList.add("active");
+}
+
 /*
     Function: markErrorCells
     
@@ -450,6 +489,8 @@ function event_keyPress(e) {
 
         // We also have to remove other error cells that was getting error as a result of the value of the current cell
         removeErrorCells(row, col, previous_value);
+    } else if(e.key == "ArrowUp" || e.key == "ArrowDown" || e.key == "ArrowLeft" || e.key == "ArrowRight" ){
+        findEditableCellOnArrowKey(e.key);
     }
 }
 
