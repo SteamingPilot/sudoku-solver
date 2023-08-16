@@ -8,26 +8,46 @@
     <link rel="stylesheet" href="jquery.toast.min.css">
 </head>
 <body>
-    <div class="board">
-    </div>
+    <div class="main">
+        <div class="left-bar">
+        </div>
 
-    <div class="btn-container">
-        <button class="btn btn-new-game">New Game</button>
-        <button class="btn btn-solve">Solve</button>
-    </div>
+        <div class="board">
+        </div>
+    
+        <div class="right-bar">
+            <div class="numbers">
+                <div class="number-pad">
+                    <div class="number">1</div>
+                    <div class="number">2</div>
+                    <div class="number">3</div>
+                </div>
+                <div class="number-pad">
+                    <div class="number">4</div>
+                    <div class="number">5</div>
+                    <div class="number">6</div>
+                </div>
+                <div class="number-pad">
+                    <div class="number">7</div>
+                    <div class="number">8</div>
+                    <div class="number">9</div>
+                </div>
 
+            </div>
 
-    <div class="numbers">
-        <div class="number cell">1</div>
-        <div class="number cell">2</div>
-        <div class="number cell">3</div>
-        <div class="number cell">4</div>
-        <div class="number cell">5</div>
-        <div class="number cell">6</div>
-        <div class="number cell">7</div>
-        <div class="number cell">8</div>
-        <div class="number cell">9</div>
+            <div class="btn-container">
+                <button class="btn btn-new-game">New Game</button>
+                <button class="btn btn-solve">Solve</button>
+            </div>
+
+            <div class="range-container">
+                <span id="rangeValue">Solving Speed: 250</span>
+                <input  id="myrange" class="range" type="range" value="250" min="1" max="500" onchange="rangeSlide(this.value)" onmousemove="rangeSlide(this.value)"/>
+            </div>
+        
+        </div>
     </div>
+    
 
 
     <!-- jquery -->

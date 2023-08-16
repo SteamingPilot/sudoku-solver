@@ -19,7 +19,7 @@ html {
     font-weight: 350;
     font-size: 12px;
     color: var(--black);
-    text-shadow: 0 2px 0 rgba(0, 0, 0, 0.07);
+    /*! text-shadow: 0 2px 0 rgba(0, 0, 0, 0.07); */
   }
   
 html *{
@@ -38,6 +38,12 @@ html *{
     box-sizing: inherit;
   }
   
+
+/* Main  */
+.main{
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+}
 
 /* Board  */
 .board{
@@ -118,14 +124,14 @@ html *{
     animation: growAndShrink 0.25s linear 0s 1 normal;
 }
 
-
-/* Buttons */
-/* Button - Container  */
-.btn-container{
-    margin-top: 20px;
+/* Left Bar  */
+.left-bar{
     display: flex;
-    justify-content: center;
+    flex-direction: column;
 }
+
+/* Left Bar - Buttons */
+/* Button - Container  */
 
 /* Button Style  */
 .btn{
@@ -136,7 +142,6 @@ html *{
     text-shadow: none;
     border-radius: 5px;
     border: 1px solid var(--color-black);
-    margin: 10px;
     cursor: pointer;
 }
 
@@ -163,6 +168,7 @@ html *{
 .btn-new-game{
     background-color: var(--color-blue);
     color: var(--black);
+    margin-right: 5px;
 }
 
 /* Button - Solve  */
@@ -172,13 +178,96 @@ html *{
 }
 
 
-
+.right-bar{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    margin-top: 50px;
+}
 /* Numbers */
 .numbers{
-    margin: 50px auto 0px;
+    font-size: 40px;
+    margin-bottom: 10px;
+}
+
+.number-pad{
+    display: flex;
+    height: auto;
+}
+
+.number{
+    width: 100px;
+    height: 100px;
+    text-align: center;
     display: flex;
     justify-content: center;
+    align-items: center;
+    margin: 2.5px;
+    border-radius: 4px;
+    background-color: var(--color-blue);
+    cursor: pointer;
 }
+
+.number:hover{
+    opacity: 0.75;
+}
+
+.number:active{
+    opacity: 0.5;
+}
+
+.number-disabled{
+    background-color: rgba(0,0,0,0.05) !important;
+    color: rgba(0,0,0,0.5) !important;
+    cursor:default;
+    border: 1px solid var(--color-black);
+}
+
+.number-disabled:hover{
+    opacity: 1 !important;
+}
+
+/* Range Slider  */
+.range-container{
+    display: flex;
+    flex-direction: column;
+    margin-top: 10px;
+}
+#rangeValue {
+    /* position: relative; */
+    /* display: block; */
+    text-align: center;
+    font-size: 20px;
+    color: #999;
+    font-weight: 400;
+    margin-bottom: 5px;
+    text-align: left;
+    margin-left: 5px;
+  }
+
+
+.range {
+    width: 310px;
+    height: 15px;
+    -webkit-appearance: none;
+    background: var(--color-black);
+    outline: none;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: inset 0 0 5px rgba(0, 0, 0, 1);
+  }
+  .range::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    background: var(--color-green);
+    cursor: pointer;
+    border: 4px solid #333;
+    box-shadow: -407px 0 0 400px #00fd0a;
+  }
+  
 
 
 /* Animations */
