@@ -631,6 +631,9 @@ function eventsInitialize(){
     // Button - Solve
     document.querySelector(".btn-solve").addEventListener('click', solver);
 
+    // Button - Reset
+    document.querySelector(".btn-reset-game").addEventListener('click', resetBoard);
+
     // Range Slider
     document.querySelector(".range").defaultValue = SOLVER_SPEED;
 
@@ -784,16 +787,26 @@ async function solver(){
     IS_SOLVING = true;
     activeCell = null;
 
-    // disabling the new game button and numpad keys
+    // disabling the game buttons and numpad keys
     var new_game_btn = document.querySelector(".btn-new-game")
     new_game_btn.disabled = true;
     new_game_btn.classList.add("btn-disabled");
-    
+
+    var reset_game_btn = document.querySelector(".btn-reset-game")
+    reset_game_btn.disabled = true;
+    reset_game_btn.classList.add("btn-disabled");
+
+    var solve_game_btn = document.querySelector(".btn-solve")
+    solve_game_btn.disabled = true;
+    solve_game_btn.classList.add("btn-disabled");
+
+
     var numbers = document.querySelectorAll(".number");
     for (let i = 0; i < numbers.length; i++) {
         const number = numbers[i];
         number.classList.add("number-disabled");
     }
+
 
 
 
@@ -843,6 +856,15 @@ async function solver(){
 
     new_game_btn.disabled = false;
     new_game_btn.classList.remove("btn-disabled");
+
+    reset_game_btn.disabled = false;
+    reset_game_btn.classList.remove("btn-disabled");
+    
+    solve_game_btn.disabled = false;
+    solve_game_btn.classList.remove("btn-disabled");
+
+
+
 
     for (let i = 0; i < numbers.length; i++) {
         const number = numbers[i];

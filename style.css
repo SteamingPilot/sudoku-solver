@@ -50,7 +50,7 @@ html *{
     display: grid;
     grid-template-rows: repeat(9, auto);
     min-height: 375px;
-    margin-top: 50px;
+    margin-top: 85px;
 }
 
 .row{
@@ -139,6 +139,12 @@ html *{
 
 /* Left Bar - Buttons */
 /* Button - Container  */
+.btn-container{
+    display: grid;
+    grid-template-columns: repeat(2, auto);
+    grid-row-gap: 5px;
+}
+
 
 /* Button Style  */
 .btn{
@@ -184,7 +190,7 @@ html *{
     color: var(--color-red);
 }
 
-
+/* Right Bar */
 .right-bar{
     display: flex;
     flex-direction: column;
@@ -192,6 +198,7 @@ html *{
     align-items: center;
     margin-top: 50px;
 }
+
 /* Numbers */
 .numbers{
     font-size: 40px;
